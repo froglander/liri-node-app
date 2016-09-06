@@ -34,6 +34,17 @@ function movie_this (movieName) {
 			console.log("Rotten Tomatoes url:", JSON.parse(body).tomatoURL);
 			console.log("===============================================================================");
 		}
+		inquirer.prompt({
+            name   : "again",
+            type   : "confirm",
+            message: "Would you like to ask Liri something else?"
+	        }).then(function(answer) {
+	            if (answer.again == true) {
+	                askLiri();
+	            } else {
+	                console.log("Liri is waiting!");
+	            }
+	        });
 	});
 }
 /* ************************************************************	*/
@@ -68,6 +79,17 @@ function my_tweets (user) {
 				console.log(moment(tweet.created_at, "ddd MMM D HH:mm:ss Z YYYY").format("h:mm A D MMM YYYY"));
 			});		
 			console.log("===============================================================================");
+			inquirer.prompt({
+            name   : "again",
+            type   : "confirm",
+            message: "Would you like to ask Liri something else?"
+	        }).then(function(answer) {
+	            if (answer.again == true) {
+	                askLiri();
+	            } else {
+	                console.log("Liri is waiting!");
+	            }
+	        });
 		} else {
 			console.log(error);
 		}
@@ -103,6 +125,18 @@ function spotify_this_song(song) {
 			    console.log("Album:", song.album.name);
 			});
 			console.log("===============================================================================");
+
+			inquirer.prompt({
+            name   : "again",
+            type   : "confirm",
+            message: "Would you like to ask Liri something else?"
+	        }).then(function(answer) {
+	            if (answer.again == true) {
+	                askLiri();
+	            } else {
+	                console.log("Liri is waiting!");
+	            }
+	        });
 	}, function(err) {
 		console.log('Something went wrong!', err);
 	});
@@ -127,47 +161,53 @@ function getArtists(artists) {
 /* Main loop of program. Displays menu and calls the correct	*/
 /* function depending on the user's choice.						*/
 /* ************************************************************	*/
-inquirer.prompt([{
-	type: "list",
-	name: "liriDo",
-	message: "What should Liri do?",
-	choices: ["Show tweets", "Spotify this song", "Movie this", "Do what it says"]
-}]).then(function(choices) {
-	console.log(choices.liriDo);
-	switch(choices.liriDo) {
-		case "Show tweets":
-			inquirer.prompt([{
-				type: "input",
-				name: "user",
-				message: "What user's tweets would you like to look up?"
-			}]).then(function(userObj) {					
-					my_tweets(userObj.user);
-				});			
-			break;
-		case "Spotify this song":
-			inquirer.prompt([{
-				type: "input",
-				name: "song",
-				message: "What song would you like to look up?"			
-			}]).then(function(songObj) {					
-					spotify_this_song(songObj.song);
-				});
-			break;
-		case "Movie this":
-			inquirer.prompt([{
-				type: "input",
-				name: "movie",
-				message: "What movie would you like to look up?"			
-			}]).then(function(promptObj) {					
-					movie_this(promptObj.movie);
-				});			
-			break;
-		case "Do what it says":
-			// do stuff
-			break;
-		default:
-			console.log("You should have chosen something!")
+function askLiri () {
+	inquirer.prompt([{
+		type: "list",
+		name: "liriDo",
+		message: "What should Liri do?",
+		choices: ["Show tweets", "Spotify this song", "Movie this", "Do what it says"]
+	}]).then(function(choices) {
+		console.log(choices.liriDo);
+		switch(choices.liriDo) {
+			case "Show tweets":
+				inquirer.prompt([{
+					type: "input",
+					name: "user",
+					message: "What user's tweets would you like to look up?"
+				}]).then(function(userObj) {					
+						my_tweets(userObj.user);
+					});			
+				break;
+			case "Spotify this song":
+				inquirer.prompt([{
+					type: "input",
+					name: "song",
+					message: "What song would you like to look up?"			
+				}]).then(function(songObj) {					
+						spotify_this_song(songObj.song);
+					});
+				break;
+			case "Movie this":
+				inquirer.prompt([{
+					type: "input",
+					name: "movie",
+					message: "What movie would you like to look up?"			
+				}]).then(function(promptObj) {					
+						movie_this(promptObj.movie);
+					});			
+				break;
+			case "Do what it says":
+				// do stuff
+				break;
+			default:
+				console.log("You should have chosen something!")
 
-	}	
-})
-//prompt
+		}	
+	})
+	//prompt
+}
+
+askLiri();
+
+
