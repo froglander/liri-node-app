@@ -34,17 +34,7 @@ function movie_this (movieName) {
 			console.log("Rotten Tomatoes url:", JSON.parse(body).tomatoURL);
 			console.log("===============================================================================");
 		}
-		inquirer.prompt({
-            name   : "again",
-            type   : "confirm",
-            message: "Would you like to ask Liri something else?"
-	        }).then(function(answer) {
-	            if (answer.again == true) {
-	                askLiri();
-	            } else {
-	                console.log("Liri is waiting!");
-	            }
-	        });
+		askAgain();
 	});
 }
 /* ************************************************************	*/
@@ -79,17 +69,7 @@ function my_tweets (user) {
 				console.log(moment(tweet.created_at, "ddd MMM D HH:mm:ss Z YYYY").format("h:mm A D MMM YYYY"));
 			});		
 			console.log("===============================================================================");
-			inquirer.prompt({
-            name   : "again",
-            type   : "confirm",
-            message: "Would you like to ask Liri something else?"
-	        }).then(function(answer) {
-	            if (answer.again == true) {
-	                askLiri();
-	            } else {
-	                console.log("Liri is waiting!");
-	            }
-	        });
+			askAgain();
 		} else {
 			console.log(error);
 		}
@@ -126,17 +106,8 @@ function spotify_this_song(song) {
 			});
 			console.log("===============================================================================");
 
-			inquirer.prompt({
-            name   : "again",
-            type   : "confirm",
-            message: "Would you like to ask Liri something else?"
-	        }).then(function(answer) {
-	            if (answer.again == true) {
-	                askLiri();
-	            } else {
-	                console.log("Liri is waiting!");
-	            }
-	        });
+			askAgain();
+			
 	}, function(err) {
 		console.log('Something went wrong!', err);
 	});
@@ -155,6 +126,20 @@ function getArtists(artists) {
 		artistArray.push(artist.name);
 	});
 	return artistArray.join(", ");
+}
+
+function askAgain() {
+	inquirer.prompt({
+        name   : "again",
+        type   : "confirm",
+        message: "Would you like to ask Liri something else?"
+        }).then(function(answer) {
+            if (answer.again == true) {
+                askLiri();
+            } else {
+                console.log("Liri is waiting!");
+            }
+        });
 }
 
 /* ************************************************************	*/
