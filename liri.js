@@ -1,4 +1,5 @@
 var fs = require('fs');
+var os = require('os');
 var inquirer = require('inquirer');
 var moment = require('moment');
 var COMMAND_FILE = "random.txt";
@@ -42,16 +43,16 @@ function movie_this (movieName) {
 /* ************************************************************	*/
 function writeMovie(body) {
 	var outputString = "";
-	outputString += "==============================================================================="
-	outputString += "\nTitle:                  " + body.Title;
-	outputString += "\nYear:                   " + body.Year;
-	outputString += "\nIMDB Rating:            " + body.imdbRating;
-	outputString += "\nCountry where produced: " + body.Country;
-	outputString += "\nLanguage:               " + body.Language;
-	outputString += "\nPlot:                   " + body.Plot;
-	outputString += "\nRotten Tomatoes rating: " + body.tomatoRating;
-	outputString += "\nRotten Tomatoes url:    " + body.tomatoURL;
-	outputString += "\n===============================================================================\n";
+	outputString += "===============================================================================" + os.EOL;
+	outputString += "Title:                  " + body.Title + os.EOL;
+	outputString += "Year:                   " + body.Year + os.EOL;
+	outputString += "IMDB Rating:            " + body.imdbRating + os.EOL;
+	outputString += "Country where produced: " + body.Country + os.EOL;
+	outputString += "Language:               " + body.Language + os.EOL;
+	outputString += "Plot:                   " + body.Plot + os.EOL;
+	outputString += "Rotten Tomatoes rating: " + body.tomatoRating + os.EOL;
+	outputString += "Rotten Tomatoes url:    " + body.tomatoURL + os.EOL;
+	outputString += "===============================================================================" + os.EOL;
 
 	return outputString;	
 }
@@ -100,16 +101,16 @@ function my_tweets (user) {
 /* ************************************************************	*/
 function writeTweets(tweets, user) {
 	var outputString = "";
-	outputString += "*******************************************************************************";
-	outputString += "\n               Most recent 20 tweets for user @"+ user;	
-	outputString += "\n*******************************************************************************";
+	outputString += "*******************************************************************************" + os.EOL;
+	outputString += "               Most recent 20 tweets for user @"+ user + os.EOL;	
+	outputString += "*******************************************************************************" + os.EOL;
 	tweets.forEach(function(tweet) {	
-		outputString += "\n===============================================================================";
-		outputString += "\n" + tweet.text;
+		outputString += "===============================================================================" + os.EOL;
+		outputString += tweet.text + os.EOL;
 		// Use momentjs to format the time and show in current timezone (twitter returns the time in UTC)
-		outputString += "\n" + moment(tweet.created_at, "ddd MMM D HH:mm:ss Z YYYY").format("h:mm A D MMM YYYY");
+		outputString += moment(tweet.created_at, "ddd MMM D HH:mm:ss Z YYYY").format("h:mm A D MMM YYYY") + os.EOL;
 	});
-	outputString += "\n===============================================================================\n";
+	outputString += os.EOL + "===============================================================================" + os.EOL;
 	return outputString;
 }
 
@@ -158,13 +159,13 @@ function spotify_this_song(song) {
 function writeSong(results) {	
 	var outputString = "";
 	results.forEach(function(song) {
-		outputString += "\n===============================================================================";
-	 	outputString += "\nArtist(s):" + getArtists(song.artists);		    
-	    outputString += "\nSong name:" +song.name;
-	    outputString += "\nPreview link:" + song.preview_url;
-	    outputString += "\nAlbum:"+ song.album.name;
+		outputString += os.EOL + "===============================================================================";
+	 	outputString += os.EOL + "Artist(s):" + getArtists(song.artists);		    
+	    outputString += os.EOL + "Song name:" +song.name;
+	    outputString += os.EOL + "Preview link:" + song.preview_url;
+	    outputString += os.EOL + "Album:"+ song.album.name;
 	});
-	outputString += "\n===============================================================================\n";
+	outputString += os.EOL + "===============================================================================" + os.EOL;
 	return outputString;
 }
 /* ************************************************************	*/
