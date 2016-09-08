@@ -1,10 +1,7 @@
 var keys = require("./keys.js");
 var fs = require('fs');
-var moment = require('moment');
-var request = require('request');
-var Twitter = require('twitter');
 var inquirer = require('inquirer');
-var SpotifyWebApi = require("spotify-web-api-node");
+
 
 /* ************************************************************	*/
 /* Method : movie_this											*/
@@ -15,6 +12,7 @@ var SpotifyWebApi = require("spotify-web-api-node");
 /*				 defaults to the movie Mr. Nobody				*/
 /* ************************************************************	*/
 function movie_this (movieName) {
+	var request = require('request');
 	if (movieName.length == 0) {
 		var movieName = "Mr. Nobody";
 	}
@@ -46,12 +44,11 @@ function movie_this (movieName) {
 /*				 entered it defaults to my account @polyhimnia	*/
 /* ************************************************************	*/
 function my_tweets (user) {
-	var client = new Twitter ({
-		consumer_key: keys.twitterKeys.consumer_key,
-		consumer_secret: keys.twitterKeys.consumer_secret,
-		access_token_key: keys.twitterKeys.access_token_key,
-		access_token_secret: keys.twitterKeys.access_token_secret
-	});
+	var keys = require("./keys.js");
+	var moment = require('moment');
+	var Twitter = require('twitter');
+
+	var client = new Twitter (keys.twitterKeys);
 
 	if (user == '') {
 		var params = {screen_name: 'polyhimnia'};
@@ -87,14 +84,16 @@ function my_tweets (user) {
 /*				 has been done by multiple artists.				*/
 /* ************************************************************	*/
 function spotify_this_song(song) {
+	var SpotifyWebApi = require("spotify-web-api-node");
 	var spotifyApi = new SpotifyWebApi();
 	if (song == '') {
-		var track = "'The+Sign' artist:'Ace+of+Base'";
+		var track = "track:'The Sign' artist:'Ace of Base'";
 	} else {
-		var track = song.split(" ").join('+');	
+		var track = song;
+		//var track = song.split(" ").join('+');	
 	}
 
-	spotifyApi.searchTracks('track:' + track , {limit : 5 })	
+	spotifyApi.searchTracks(track , {limit : 5 })
 		.then(function(data) {			
 			var results = data.body.tracks.items;	// To make it easier to refer to the results
 			results.forEach(function(song) {
@@ -153,43 +152,43 @@ function askLiri () {
 		message: "What should Liri do?",
 		choices: ["Show tweets", "Spotify this song", "Movie this", "Do what it says"]
 	}]).then(function(choices) {
-		console.log(choices.liriDo);
-		switch(choices.liriDo) {
-			case "Show tweets":
+		//console.log(choices.liriDo);
+
+		var liriChoice = {
+			"Show tweets" : function () {
 				inquirer.prompt([{
 					type: "input",
 					name: "user",
 					message: "What user's tweets would you like to look up?"
 				}]).then(function(userObj) {					
-						my_tweets(userObj.user);
-					});			
-				break;
-			case "Spotify this song":
+					my_tweets(userObj.user);
+				});	
+			},
+			"Spotify this song": function () {
 				inquirer.prompt([{
 					type: "input",
 					name: "song",
 					message: "What song would you like to look up?"			
 				}]).then(function(songObj) {					
-						spotify_this_song(songObj.song);
-					});
-				break;
-			case "Movie this":
+					spotify_this_song(songObj.song);
+				});
+			},
+			"Movie this": function() {
 				inquirer.prompt([{
 					type: "input",
 					name: "movie",
 					message: "What movie would you like to look up?"			
 				}]).then(function(promptObj) {					
-						movie_this(promptObj.movie);
-					});			
-				break;
-			case "Do what it says":
+					movie_this(promptObj.movie);
+				});			
+			},
+			"Do what it says": function() {
 				// do stuff
-				break;
-			default:
-				console.log("You should have chosen something!")
+			}
+			} // end liriChoice
 
-		}	
-	})
+			liriChoice[choices.liriDo]();
+	});
 	//prompt
 }
 
