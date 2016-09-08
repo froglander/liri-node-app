@@ -1,6 +1,8 @@
-var keys = require("./keys.js");
 var fs = require('fs');
 var inquirer = require('inquirer');
+var moment = require('moment');
+var COMMAND_FILE = "random.txt";
+var LOG_FILE = "log.txt";
 
 
 /* ************************************************************	*/
@@ -20,20 +22,38 @@ function movie_this (movieName) {
 
 	request(queryUrl, function(error, response, body) {
 		if(!error && response.statusCode == 200) {
-			//console.log(JSON.parse(body));
-			console.log("===============================================================================");
-			console.log("Title:", JSON.parse(body).Title);
-			console.log("Year:", JSON.parse(body).Year);
-			console.log("IMDB Rating:", JSON.parse(body).imdbRating);
-			console.log("Country where produced:", JSON.parse(body).Country);
-			console.log("Language:", JSON.parse(body).Language);
-			console.log("Plot:", JSON.parse(body).Plot);
-			console.log("Rotten Tomatoes rating:", JSON.parse(body).tomatoRating);
-			console.log("Rotten Tomatoes url:", JSON.parse(body).tomatoURL);
-			console.log("===============================================================================");
+			var outputMovie = writeMovie(JSON.parse(body));
+
+			console.log(outputMovie);
+
+			fs.appendFile(LOG_FILE, outputMovie, function(err) {
+				if (err) throw err;
+			});			
 		}
 		askAgain();
 	});
+}
+/* ************************************************************	*/
+/* Method : writeMovie											*/
+/* Parameters : body											*/
+/* Description : This function takes the JSON results and 		*/
+/*				 creates a string that can be returned for 		*/
+/*				 writing to screen or file 						*/
+/* ************************************************************	*/
+function writeMovie(body) {
+	var outputString = "";
+	outputString += "==============================================================================="
+	outputString += "\nTitle:                  " + body.Title;
+	outputString += "\nYear:                   " + body.Year;
+	outputString += "\nIMDB Rating:            " + body.imdbRating;
+	outputString += "\nCountry where produced: " + body.Country;
+	outputString += "\nLanguage:               " + body.Language;
+	outputString += "\nPlot:                   " + body.Plot;
+	outputString += "\nRotten Tomatoes rating: " + body.tomatoRating;
+	outputString += "\nRotten Tomatoes url:    " + body.tomatoURL;
+	outputString += "\n===============================================================================\n";
+
+	return outputString;	
 }
 /* ************************************************************	*/
 /* Method : my_tweets											*/
@@ -44,34 +64,54 @@ function movie_this (movieName) {
 /*				 entered it defaults to my account @polyhimnia	*/
 /* ************************************************************	*/
 function my_tweets (user) {
-	var keys = require("./keys.js");
-	var moment = require('moment');
+	var keys = require("./keys.js");	
 	var Twitter = require('twitter');
 
 	var client = new Twitter (keys.twitterKeys);
-
+	var twitterUser;
 	if (user == '') {
-		var params = {screen_name: 'polyhimnia'};
+		twitterUser = 'polyhimnia';
 	} else {
-		var params = {screen_name: user};
+		twitterUser = user;
 	}
+
+	var params = {screen_name: twitterUser};
 
 	client.get('statuses/user_timeline', params, function(error, tweets, response) {	
 		if(!error) {
-			console.log("Most recent 20 tweets for user @"+ params.screen_name);	
-			tweets.forEach(function(tweet) {	
-				console.log("===============================================================================");
-				console.log(tweet.text);	
-				// Use momentjs to format the time and show in current timezone (twitter returns the time in UTC)
-				console.log(moment(tweet.created_at, "ddd MMM D HH:mm:ss Z YYYY").format("h:mm A D MMM YYYY"));
-			});		
-			console.log("===============================================================================");
+			var outputTweets = writeTweets(tweets, twitterUser);		
+			console.log(outputTweets);
+			fs.appendFile(LOG_FILE, outputTweets, function(err) {
+				if (err) throw err;
+			});			
 			askAgain();
 		} else {
 			console.log(error);
 		}
 	});
 } // end my_tweets
+
+/* ************************************************************	*/
+/* Method : writeTweets											*/
+/* Parameters : tweets, user									*/
+/* Description : This function takes the JSON results and 		*/
+/*				 creates a string that can be returned for 		*/
+/*				 writing to screen or file 						*/
+/* ************************************************************	*/
+function writeTweets(tweets, user) {
+	var outputString = "";
+	outputString += "*******************************************************************************";
+	outputString += "\n               Most recent 20 tweets for user @"+ user;	
+	outputString += "\n*******************************************************************************";
+	tweets.forEach(function(tweet) {	
+		outputString += "\n===============================================================================";
+		outputString += "\n" + tweet.text;
+		// Use momentjs to format the time and show in current timezone (twitter returns the time in UTC)
+		outputString += "\n" + moment(tweet.created_at, "ddd MMM D HH:mm:ss Z YYYY").format("h:mm A D MMM YYYY");
+	});
+	outputString += "\n===============================================================================\n";
+	return outputString;
+}
 
 /* ************************************************************	*/
 /* Method : spotify_this_song									*/
@@ -96,14 +136,11 @@ function spotify_this_song(song) {
 	spotifyApi.searchTracks(track , {limit : 5 })
 		.then(function(data) {			
 			var results = data.body.tracks.items;	// To make it easier to refer to the results
-			results.forEach(function(song) {
-				console.log("===============================================================================");
-			 	console.log("Artist(s):", getArtists(song.artists));		    
-			    console.log("Song name:", song.name);
-			    console.log("Preview link:", song.album.external_urls.spotify);
-			    console.log("Album:", song.album.name);
-			});
-			console.log("===============================================================================");
+			var outputSong = writeSong(results);
+			console.log(outputSong);
+			fs.appendFile(LOG_FILE, outputSong, function(err) {
+				if (err) throw err;
+			});	
 
 			askAgain();
 			
@@ -111,7 +148,25 @@ function spotify_this_song(song) {
 		console.log('Something went wrong!', err);
 	});
 }
-
+/* ************************************************************	*/
+/* Method : writeSong											*/
+/* Parameters : song 											*/
+/* Description : This function takes the JSON results and 		*/
+/*				 creates a string that can be returned for 		*/
+/*				 writing to screen or file 						*/
+/* ************************************************************	*/
+function writeSong(results) {	
+	var outputString = "";
+	results.forEach(function(song) {
+		outputString += "\n===============================================================================";
+	 	outputString += "\nArtist(s):" + getArtists(song.artists);		    
+	    outputString += "\nSong name:" +song.name;
+	    outputString += "\nPreview link:" + song.preview_url;
+	    outputString += "\nAlbum:"+ song.album.name;
+	});
+	outputString += "\n===============================================================================\n";
+	return outputString;
+}
 /* ************************************************************	*/
 /* Method : getArtists											*/
 /* Parameters : artists 										*/
@@ -127,6 +182,42 @@ function getArtists(artists) {
 	return artistArray.join(", ");
 }
 
+/* ************************************************************	*/
+/* Method : do_what_it_says										*/
+/* Parameters : none	 										*/
+/* Description : This function takes the text inside random.txt	*/
+/*				 and calls the indicated command.  The default 	*/
+/*				 command is spotify "I Want it That Way"		*/
+/* ************************************************************	*/
+function do_what_it_says () {	
+	fs.readFile(COMMAND_FILE, 'utf8', function(err, data) {		
+		if(err) {
+			return console.log(err);
+		}
+		var dataArray = data.split(',');
+		var liriCommand = dataArray[0];
+		var liriParameter = dataArray[1];
+
+		var liriChoice = {
+			"my_tweets": function() {
+				my_tweets(liriParameter);
+			},
+			"spotify_this_song": function() {
+				spotify_this_song(liriParameter);
+			},
+			"movie_this": function() {
+				movie_this(liriParameter);
+			}
+		} // end liriChoice
+
+		liriChoice[liriCommand]();
+	});
+}
+/* ************************************************************	*/
+/* Function that asks user if they want to ask Liri something 	*/
+/* else and if so, calls the askLiri function, otherwise it 	*/
+/* prints a goodbye message and the program ends. 				*/
+/* ************************************************************	*/
 function askAgain() {
 	inquirer.prompt({
         name   : "again",
@@ -138,9 +229,8 @@ function askAgain() {
             } else {
                 console.log("Liri is waiting!");
             }
-        });
+	});
 }
-
 /* ************************************************************	*/
 /* Main loop of program. Displays menu and calls the correct	*/
 /* function depending on the user's choice.						*/
@@ -183,11 +273,11 @@ function askLiri () {
 				});			
 			},
 			"Do what it says": function() {
-				// do stuff
+				do_what_it_says();
 			}
-			} // end liriChoice
+		} // end liriChoice
 
-			liriChoice[choices.liriDo]();
+		liriChoice[choices.liriDo]();
 	});
 	//prompt
 }
