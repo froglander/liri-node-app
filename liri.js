@@ -1,9 +1,17 @@
-var fs = require('fs');
-var os = require('os');
-var inquirer = require('inquirer');
-var moment = require('moment');
-var COMMAND_FILE = "random.txt";
-var LOG_FILE = "log.txt";
+// Read and set environment variables
+require("dotenv").config();
+
+const keys = require("./keys.js");	
+const Twitter = require('twitter');
+const request = require('request');
+const Spotify = require("node-spotify-api");
+
+const fs = require('fs');
+const os = require('os');
+const inquirer = require('inquirer');
+const moment = require('moment');
+const COMMAND_FILE = "random.txt";
+const LOG_FILE = "log.txt";
 
 
 /* ************************************************************	*/
@@ -15,13 +23,12 @@ var LOG_FILE = "log.txt";
 /*				 defaults to the movie Mr. Nobody				*/
 /* ************************************************************	*/
 function movie_this (movieName) {
-	var request = require('request');
 	if (movieName.length == 0) {
 		var movieName = "Mr. Nobody";
 	}
-	var queryUrl = 'http://www.omdbapi.com/?t=' + movieName + '&y=&plot=short&r=json&tomatoes=true';
+	var queryUrl = 'http://www.omdbapi.com/?t=' + movieName + '&y=&plot=short&r=json&tomatoes=true&apikey=trilogy';
 
-	request(queryUrl, function(error, response, body) {
+	request(queryUrl, (error, response, body) => {
 		if(!error && response.statusCode == 200) {
 			var outputMovie = writeMovie(JSON.parse(body));
 
@@ -43,16 +50,17 @@ function movie_this (movieName) {
 /* ************************************************************	*/
 function writeMovie(body) {
 	var outputString = "";
-	outputString += "===============================================================================" + os.EOL;
-	outputString += "Title:                  " + body.Title + os.EOL;
-	outputString += "Year:                   " + body.Year + os.EOL;
-	outputString += "IMDB Rating:            " + body.imdbRating + os.EOL;
-	outputString += "Country where produced: " + body.Country + os.EOL;
-	outputString += "Language:               " + body.Language + os.EOL;
-	outputString += "Plot:                   " + body.Plot + os.EOL;
-	outputString += "Rotten Tomatoes rating: " + body.tomatoRating + os.EOL;
-	outputString += "Rotten Tomatoes url:    " + body.tomatoURL + os.EOL;
-	outputString += "===============================================================================" + os.EOL;
+    outputString += 
+`===============================================================================
+Title:                  ${body.Title}
+Year:                   ${body.Year}
+IMDB Rating:            ${body.imdbRating}
+Country where produced: ${body.Country}
+Language:               ${body.Language}
+Plot:                   ${body.Plot}
+Rotten Tomatoes rating: ${body.tomatoRating}
+Rotten Tomatoes url:    ${body.tomatoURL}
+===============================================================================`;
 
 	return outputString;	
 }
@@ -65,10 +73,8 @@ function writeMovie(body) {
 /*				 entered it defaults to my account @polyhimnia	*/
 /* ************************************************************	*/
 function my_tweets (user) {
-	var keys = require("./keys.js");	
-	var Twitter = require('twitter');
+    var client = new Twitter(keys.twitter);
 
-	var client = new Twitter (keys.twitterKeys);
 	var twitterUser;
 	if (user == '') {
 		twitterUser = 'polyhimnia';
@@ -78,11 +84,11 @@ function my_tweets (user) {
 
 	var params = {screen_name: twitterUser};
 
-	client.get('statuses/user_timeline', params, function(error, tweets, response) {	
+	client.get('statuses/user_timeline', params, (error, tweets, response) => {	
 		if(!error) {
 			var outputTweets = writeTweets(tweets, twitterUser);		
 			console.log(outputTweets);
-			fs.appendFile(LOG_FILE, outputTweets, function(err) {
+			fs.appendFile(LOG_FILE, outputTweets, (err) => {
 				if (err) throw err;
 			});			
 			askAgain();
@@ -104,7 +110,7 @@ function writeTweets(tweets, user) {
 	outputString += "*******************************************************************************" + os.EOL;
 	outputString += "               Most recent 20 tweets for user @"+ user + os.EOL;	
 	outputString += "*******************************************************************************" + os.EOL;
-	tweets.forEach(function(tweet) {	
+	tweets.forEach((tweet) => {	
 		outputString += "===============================================================================" + os.EOL;
 		outputString += tweet.text + os.EOL;
 		// Use momentjs to format the time and show in current timezone (twitter returns the time in UTC)
@@ -125,18 +131,22 @@ function writeTweets(tweets, user) {
 /*				 has been done by multiple artists.				*/
 /* ************************************************************	*/
 function spotify_this_song(song) {
-	var SpotifyWebApi = require("spotify-web-api-node");
-	var spotifyApi = new SpotifyWebApi();
+    var spotifyApi = new Spotify(keys.spotify);
+
 	if (song == '') {
-		var track = "track:'The Sign' artist:'Ace of Base'";
+		song = "The Sign";
 	} else {
-		var track = song;
-		//var track = song.split(" ").join('+');	
+		var song = song;
 	}
 
-	spotifyApi.searchTracks(track , {limit : 5 })
-		.then(function(data) {			
-			var results = data.body.tracks.items;	// To make it easier to refer to the results
+    spotifyApi.search(
+        {
+          type: 'track',
+          query: song
+        })
+		.then(function(data) {	
+
+			var results = data.tracks.items;	// To make it easier to refer to the results
 			var outputSong = writeSong(results);
 			console.log(outputSong);
 			fs.appendFile(LOG_FILE, outputSong, function(err) {
@@ -269,7 +279,9 @@ function askLiri () {
 					type: "input",
 					name: "movie",
 					message: "What movie would you like to look up?"			
-				}]).then(function(promptObj) {					
+				}]).then(function(promptObj) {	
+                    // console.log("prompt:", promptObj);
+
 					movie_this(promptObj.movie);
 				});			
 			},

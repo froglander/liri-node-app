@@ -1,0 +1,16 @@
+{
+  "name": "liri-node-app",
+  "version": "1.0.0",
+  "main": "liri.js",
+  "repository": "https://github.com/froglander/liri-node-app.git",
+  "author": "Kristi Heredia <froglander@dukworld.net>",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "inquirer": "^4.0.2",
+    "moment": "^2.20.1",
+    "node-spotify-api": "^1.0.7",
+    "spotify-web-api-node": "^2.5.0",
+    "twitter": "^1.7.1"
+  }
+}
